@@ -55,10 +55,13 @@ struct PrecFloat
   
   inline friend std::ostream& operator<<(std::ostream& os,const PrecFloat& f)
   {
+    const bool fixed=
+      os.flags()&std::ios_base::fixed;
+       
 #ifndef FAKE_HP
     constexpr int lenFormat=10;
     char format[lenFormat];
-    snprintf(format,lenFormat,"%%" "." "%td" "Rf",os.precision());
+    snprintf(format,lenFormat,"%%" "." "%td" "R%c",os.precision(),(fixed?'f':'g'));
     
     constexpr int lenOut=1024;
     char out[lenOut];
@@ -312,6 +315,12 @@ PROVIDE_UNARY_FUNCTION(erfc,mpfr_erfc)
 
 #undef PROVIDE_UNARY_FUNCTION
 #undef UNARY_HELPER
+
+/// Returns the square
+inline PrecFloat sqr(const PrecFloat& in)
+{
+  return in*in;
+}
 
 /////////////////////////////////////////////////////////////////
 

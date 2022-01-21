@@ -25,5 +25,25 @@ int main()
   
   cout<<"Check inversion: "<<(i*m-PrecMatr::Identity(n,n)).squaredNorm().get()<<" "<<(m*i-PrecMatr::Identity(n,n)).squaredNorm().get()<<endl;
   
+  /////////////////////////////////////////////////////////////////
+  
+  cout<<"Integration test"<<endl;
+  PrecFloat::setDefaultPrecision(1024);
+  cout.precision(PrecFloat::getNDigits());
+  
+  const PrecFloat numeric=
+    integrateBetween0andInfinite([](const PrecFloat& x)
+    {
+      return exp(-sqr(x-0.5)/2);
+    });
+  cout<<numeric<<endl;
+  
+  const PrecFloat exact=
+    sqrt(precPi()/2)*erfc(-(PrecFloat)0.5/sqrt(PrecFloat(2)));
+  cout<<exact<<endl;
+
+  cout.precision(16);
+  cout<<"Relative error: "<<(numeric/exact-1)<<endl;
+  
   return 0;
 }
