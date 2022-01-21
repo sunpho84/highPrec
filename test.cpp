@@ -12,8 +12,16 @@ int main()
   
   PrecMatr m(n,n);
   m.setRandom();
+
+  PrecVect v(n);
+  v.setRandom();
   
-  const PrecMatr i=m.inverse();
+  const PrecMatr i=
+    m.inverse();
+  
+  const PrecFloat matrixForm=
+    v.transpose()*i*v;
+  cout<<matrixForm.get()<<endl;
   
   cout<<"Check inversion: "<<(i*m-PrecMatr::Identity(n,n)).squaredNorm().get()<<" "<<(m*i-PrecMatr::Identity(n,n)).squaredNorm().get()<<endl;
   
