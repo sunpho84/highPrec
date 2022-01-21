@@ -17,12 +17,60 @@ struct PrecFloat
 #endif
   }
   
+  /// Gets the default precision
+  static int getDefaultPrecision()
+  {
+    return
+#ifndef FAKE_HP
+      mpfr_get_default_prec();
+#else
+    return 53;
+#endif
+  }
+  
+  /// Gets the number of decimal digits that can be printed
+  static int getNDigits()
+  {
+    return
+#ifndef FAKE_HP
+      getDefaultPrecision()*log10(2.0);
+#else
+    16;
+#endif
+  }
+  
+  /// Returns the current smaller number
+  static PrecFloat getEpsilon()
+  {
+    return
+      pow((PrecFloat)2,-getDefaultPrecision());
+  }
+  
   /// Storage
 #ifndef FAKE_HP
   mpfr_t data{};
 #else
   double data;
 #endif
+  
+  inline friend std::ostream& operator<<(std::ostream& os,const PrecFloat& f)
+  {
+#ifndef FAKE_HP
+    constexpr int lenFormat=10;
+    char format[lenFormat];
+    snprintf(format,lenFormat,"%%" "." "%td" "Rf",os.precision());
+    
+    constexpr int lenOut=1024;
+    char out[lenOut];
+    mpfr_snprintf(out,lenOut,format,f.data);
+    
+    os<<out;
+#else
+    os<<f.data;
+#endif
+    
+    return os;
+  }
   
   /// Returns the internal data
   double get() const
@@ -110,6 +158,34 @@ struct PrecFloat
     mpfr_clear(data);
 #endif
   }
+  
+  /////////////////////////////////////////////////////////////////
+  
+#ifdef FAKE_HP
+#define BINARY_HELPER(NAME,MPFR_NAME)		\
+  out.data=NAME(in1.data,in2.data)
+#else
+#define BINARY_HELPER(NAME,MPFR_NAME)			\
+  MPFR_NAME(out.data,in1.data,in2.data,MPFR_RNDD)
+#endif
+  
+#define PROVIDE_BINARY_FUNCTION(NAME,MPFR_NAME)		\
+  							\
+  inline friend PrecFloat NAME(const PrecFloat& in1,	\
+			       const PrecFloat& in2)	\
+  {							\
+    PrecFloat out;					\
+    							\
+    BINARY_HELPER(NAME,MPFR_NAME);			\
+    							\
+    return						\
+      out;						\
+  }
+  
+  PROVIDE_BINARY_FUNCTION(pow,mpfr_pow)
+  
+#undef PROVIDE_BINARY_FUNCTION
+#undef BINARY_HELPER
   
   /////////////////////////////////////////////////////////////////
   
