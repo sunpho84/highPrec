@@ -8,10 +8,14 @@ Prerequisites:
 - Mpfr library
 - Eigen Library
 
+Optional:
+
+- openmp
+
 Link against the library mpfr, adding: ```-lmpfr```
 
 Example:
 
 ```
-g++ -o test test.cpp -lmpfr
+g++ -o test test.cpp -lmpfr -fopenmp
 ```
