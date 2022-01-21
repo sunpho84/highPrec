@@ -31,17 +31,23 @@ int main()
   PrecFloat::setDefaultPrecision(1024);
   cout.precision(PrecFloat::getNDigits());
   
-  const PrecFloat numeric=
-    integrateBetween0andInfinite([](const PrecFloat& x)
+  const double x0=0.5,s=0.05;
+  
+  /// Gaussian centered in x0 with sigma=s
+  const auto f=
+    [&x0,&s](const PrecFloat& x)
     {
-      return exp(-sqr(x-0.5)/2);
-    });
+      return exp(-sqr((x-x0)/s)/2);
+    };
+  
+  const PrecFloat numeric=
+    integrateBetween0andInfinite(f);
   cout<<numeric<<endl;
   
   const PrecFloat exact=
-    sqrt(precPi()/2)*erfc(-(PrecFloat)0.5/sqrt(PrecFloat(2)));
+    sqrt(precPi()/2)*s*erfc(-(PrecFloat)x0/(sqrt(PrecFloat(2))*s));
   cout<<exact<<endl;
-
+  
   cout.precision(16);
   cout<<"Relative error: "<<(numeric/exact-1)<<endl;
   
