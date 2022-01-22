@@ -424,7 +424,7 @@ using PrecMatr=
 /// The iterative procedure is stopped when the result is stable
 /// within attainable precisione
 template <typename F>
-PrecFloat integrateBetween0andInfinite(F&& f,const double& xMin=0.0)
+PrecFloat integrateUpToInfinite(F&& f,const double& xMin=0.0)
 {
   /// We compute up to the highest precision possible, which needs to
   /// be adjusted in terms of the number of iterations (maybe it might

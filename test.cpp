@@ -41,7 +41,7 @@ int main()
     };
   
   const PrecFloat numeric=
-    integrateBetween0andInfinite(f);
+    integrateUpToInfinite(f);
   cout<<numeric<<endl;
   
   const PrecFloat exact=
