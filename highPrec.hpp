@@ -8,12 +8,20 @@
 /// Structure to represent arbitray precision real number
 struct PrecFloat
 {
+#ifndef FAKE_HP
+  static inline int& _defaultPrecision()
+  {
+    static int _val;
+    
+    return _val;
+  }
+#endif
+  
   /// Sets the default precision
   static void setDefaultPrecision(const int& n)
   {
 #ifndef FAKE_HP
-#pragma omp parallel
-    mpfr_set_default_prec(n);
+    _defaultPrecision()=n;
 #endif
   }
   
@@ -22,10 +30,11 @@ struct PrecFloat
   {
     return
 #ifndef FAKE_HP
-      mpfr_get_default_prec();
+      _defaultPrecision()
 #else
-    return 53;
+      53
 #endif
+      ;
   }
   
   /// Gets the number of decimal digits that can be printed
@@ -33,10 +42,11 @@ struct PrecFloat
   {
     return
 #ifndef FAKE_HP
-      getDefaultPrecision()*log10(2.0);
+      getDefaultPrecision()*log10(2.0)
 #else
-    16;
+      16
 #endif
+      ;
   }
   
   /// Returns the current smaller number
@@ -55,10 +65,10 @@ struct PrecFloat
   
   inline friend std::ostream& operator<<(std::ostream& os,const PrecFloat& f)
   {
+#ifndef FAKE_HP
     const bool fixed=
       os.flags()&std::ios_base::fixed;
        
-#ifndef FAKE_HP
     constexpr int lenFormat=10;
     char format[lenFormat];
     snprintf(format,lenFormat,"%%" "." "%td" "R%c",os.precision(),(fixed?'f':'g'));
@@ -117,33 +127,35 @@ struct PrecFloat
   {
 #ifdef FAKE_HP
 #else
-    mpfr_init(data);
+    mpfr_init2(data,_defaultPrecision());
 #endif
   }
   
   /// Copy constructor
-  PrecFloat(const PrecFloat& oth)
+  PrecFloat(const PrecFloat& oth) :
+    PrecFloat()
   {
 #ifdef FAKE_HP
     data=oth.data;
 #else
-    mpfr_init_set(data,oth.data,MPFR_RNDD);
+    mpfr_set(data,oth.data,MPFR_RNDD);
 #endif
   }
   
-  /////////////////////////////////////////////////////////////////  
+  /////////////////////////////////////////////////////////////////
   
 #ifdef FAKE_HP
-#define PROVIDE_CONVERSION_FROM(TYPE,)			\
+#define PROVIDE_CONVERSION_FROM(TYPE,MPFR_TAG)		\
   PrecFloat(const TYPE& in)				\
   {							\
     data=in;						\
   }
 #else
 #define PROVIDE_CONVERSION_FROM(TYPE,MPFR_TAG)		\
-  PrecFloat(const TYPE& in)				\
+  PrecFloat(const TYPE& in) :				\
+    PrecFloat()						\
   {							\
-  mpfr_init_set_ ## MPFR_TAG(data,in,MPFR_RNDD);	\
+    mpfr_set_ ## MPFR_TAG(data,in,MPFR_RNDD);		\
   }
 #endif
   
@@ -237,7 +249,7 @@ struct PrecFloat
   inline PrecFloat& operator NAME ## =(const PrecFloat& in)	\
     {								\
       return							\
-      (*this)=(*this)NAME in;					\
+	(*this)=(*this)NAME in;					\
     }
   
 #define PROVIDE_BINARY_OPERATOR(NAME,MPFR_NAME)			\
@@ -412,7 +424,7 @@ using PrecMatr=
 /// The iterative procedure is stopped when the result is stable
 /// within attainable precisione
 template <typename F>
-PrecFloat integrateBetween0andInfinite(F&& f)
+PrecFloat integrateBetween0andInfinite(F&& f,const double& xMin=0.0)
 {
   /// We compute up to the highest precision possible, which needs to
   /// be adjusted in terms of the number of iterations (maybe it might
@@ -424,10 +436,10 @@ PrecFloat integrateBetween0andInfinite(F&& f)
     precPi()/2;
   
   auto c=
-    [&f,&piHalf](const PrecFloat& t)
+    [&f,&piHalf,&xMin](const PrecFloat& t)
     {
       const PrecFloat s=sinh(t);
-      const PrecFloat x=exp(piHalf*s);
+      const PrecFloat x=exp(piHalf*s)+xMin;
       const PrecFloat jac=piHalf*exp(piHalf*s)*cosh(t);
       const PrecFloat res=f(x)*jac;
       
@@ -436,7 +448,7 @@ PrecFloat integrateBetween0andInfinite(F&& f)
       return res;
     };
   
-  PrecFloat sum=2*c(0);
+  PrecFloat sum=c(0)*2;
   PrecFloat extreme=0;
   PrecFloat step=1;
   PrecFloat precSum;
@@ -466,7 +478,7 @@ PrecFloat integrateBetween0andInfinite(F&& f)
 	  const PrecFloat newSum=
 	    sum+contr*step;
 	  
-	  //cout<<"t: "<<t<<" step: "<<step<<" contr: "<<contr<<" t>extreme: "<<(t>extreme)<<" converged: "<<converged<<endl;
+	  // cout<<"t: "<<t<<" step: "<<step<<" contr: "<<contr<<" t>extreme: "<<(t>extreme)<<" converged: "<<converged<<endl;
 	  
 	  converged=
 	    (newSum==sum);
@@ -498,3 +510,7 @@ PrecFloat integrateBetween0andInfinite(F&& f)
   
   return sum;
 }
+
+#ifdef MAIN
+int PrecFloat::_defaultPrecision;
+#endif

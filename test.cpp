@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "highPrec.hpp"
+#include <highPrec.hpp>
 
 using namespace std;
 
