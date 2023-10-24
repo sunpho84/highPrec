@@ -3,6 +3,8 @@
 
 #include <PrecFloat.hpp>
 
+#include <iostream>
+
 /// Integrate the passed function f with the double exponential
 /// transformation of eq.1.16 of
 /// https://core.ac.uk/download/pdf/82080804.pdf
@@ -26,7 +28,7 @@
 /// The iterative procedure is stopped when the result is stable
 /// within attainable precisione
 template <typename F>
-PrecFloat integrateUpToInfinite(F&& f,const double& xMin=0.0)
+PrecFloat precIntegrateUpToInfinity(F&& f,const double& xMin=0.0)
 {
   /// We compute up to the highest precision possible, which needs to
   /// be adjusted in terms of the number of iterations (maybe it might
@@ -80,6 +82,7 @@ PrecFloat integrateUpToInfinite(F&& f,const double& xMin=0.0)
 	  const PrecFloat newSum=
 	    sum+contr*step;
 	  
+	  // using namespace std;
 	  // cout<<"t: "<<t<<" step: "<<step<<" contr: "<<contr<<" t>extreme: "<<(t>extreme)<<" converged: "<<converged<<endl;
 	  
 	  converged=
@@ -104,7 +107,7 @@ PrecFloat integrateUpToInfinite(F&& f,const double& xMin=0.0)
       // cout<<(sum-1)<<endl;
       
       stability=abs(sum/precSum-1);
-      // cout<<"Stability: "<<stability<<endl;
+       std::cout<<"Stability: "<<stability<<std::endl;
       maxAttainableStability*=2;
       // cout<<"MaxAttainableStability: "<<maxAttainableStability<<endl;
     }

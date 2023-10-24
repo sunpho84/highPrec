@@ -99,6 +99,11 @@ struct PrecFloat
 #endif
   }
   
+  explicit operator double() const
+  {
+    return get();
+  }
+  
   /// Assignment
   PrecFloat& operator=(const double& in)
   {
@@ -201,6 +206,7 @@ struct PrecFloat
   }
   
   PROVIDE_BINARY_FUNCTION(pow,mpfr_pow)
+  //PROVIDE_BINARY_FUNCTION(gamma,mpfr_gamma_inc) // Check before use
   
 #undef PROVIDE_BINARY_FUNCTION
 #undef BINARY_HELPER
@@ -317,6 +323,7 @@ struct PrecFloat
 }
 
 PROVIDE_UNARY_FUNCTION(exp,mpfr_exp)
+PROVIDE_UNARY_FUNCTION(log,mpfr_log)
 PROVIDE_UNARY_FUNCTION(abs,mpfr_abs)
 PROVIDE_UNARY_FUNCTION(sqrt,mpfr_sqrt)
 PROVIDE_UNARY_FUNCTION(asin,mpfr_asin)
